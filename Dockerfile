@@ -11,26 +11,17 @@ LABEL io.openshift.tags="apache, httpd"
 
 ENV DOCROOT=/var/www/html
 
-RUN yum install -y --disableplugin=subscription-manager httpd
+RUN yum install -y --disableplugin=subscription-manager httpd && yum clean all --disableplugin=subscription-manager -y && echo "Hello from the httpd-parent container!" > ${DOCROOT}/index.html
 
-RUN yum clean all --disableplugin=subscription-manager -y
-
-RUN  echo "Hello from the httpd-parent container!" > ${DOCROOT}/index.html
-
+ONBUILD COPY src /var/www/html
 # Allows child images to inject their own content into DocumentRoot
 
 EXPOSE 8080
 
 # This stuff is needed to ensure a clean start
 
-RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf 
-RUN sed -i "s/#ServerName www.example.com:80/ServerName 0.0.0.0:8080/g" \
-    /etc/httpd/conf/httpd.conf
-
-RUN chgrp -R 0 /var/log/httpd /var/run/httpd 
-RUN chmod -R g=u /var/log/httpd /var/run/httpd
-
-RUN rm -rf /run/httpd && mkdir /run/httpd
+RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf && sed -i "s/#ServerName www.example.com:80/ServerName 0.0.0.0:8080/g" \
+    /etc/httpd/conf/httpd.conf && chgrp -R 0 /var/log/httpd /var/run/httpd && chmod -R g=u /var/log/httpd /var/run/httpd && rm -rf /run/httpd && mkdir /run/httpd
 
 # Launch httpd
 
